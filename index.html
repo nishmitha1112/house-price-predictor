@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>House Price Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 24px;
+            padding: 50px 40px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            font-weight: 400;
+            margin-bottom: 40px;
+            color: #b8c5d6;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #e0e0e0;
+            letter-spacing: 0.01em;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 400;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(5px);
+            min-height: 48px; /* Adequate touch target */
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #5dade2;
+            box-shadow: 0 0 0 3px rgba(93, 173, 226, 0.25), 0 0 20px rgba(93, 173, 226, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-1px);
+        }
+
+        input::placeholder {
+            color: #9ca3af;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            min-height: 48px; /* Ensure adequate touch target */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 50%, #f093fb 100%);
+        }
+
+        .btn:active {
+            transform: translateY(-1px) scale(1.01);
+        }
+
+        .btn.loading {
+            opacity: 0.8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 40px;
+            padding: 24px;
+            border-radius: 16px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+        }
+
+        .result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #667eea;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .result p {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.01em;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                max-width: 400px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                max-width: 380px;
+                padding: 15px;
+            }
+
+            .card {
+                padding: 40px 30px;
+                border-radius: 20px;
+            }
+
+            .title {
+                font-size: 2.3rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+                margin-bottom: 35px;
+            }
+
+            .form-group {
+                margin-bottom: 22px;
+            }
+
+            input {
+                padding: 12px 16px;
+                font-size: 0.95rem;
+                min-height: 44px;
+            }
+
+            .btn {
+                padding: 15px;
+                font-size: 1rem;
+                margin-top: 15px;
+                min-height: 44px;
+            }
+
+            .result {
+                margin-top: 35px;
+                padding: 20px;
+            }
+
+            .result h3 {
+                font-size: 1.2rem;
+            }
+
+            .result p {
+                font-size: 1.6rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                max-width: 340px;
+                padding: 12px;
+            }
+
+            .card {
+                padding: 35px 25px;
+                border-radius: 18px;
+            }
+
+            .title {
+                font-size: 2rem;
+                margin-bottom: 10px;
+            }
+
+            .subtitle {
+                font-size: 0.95rem;
+                margin-bottom: 30px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            label {
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+            }
+
+            input {
+                padding: 12px 14px;
+                font-size: 0.9rem;
+                min-height: 42px;
+            }
+
+            .btn {
+                padding: 14px;
+                font-size: 0.95rem;
+                margin-top: 12px;
+                min-height: 42px;
+            }
+
+            .result {
+                margin-top: 30px;
+                padding: 18px;
+                border-radius: 14px;
+            }
+
+            .result h3 {
+                font-size: 1.1rem;
+                margin-bottom: 10px;
+            }
+
+            .result p {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                max-width: 320px;
+                padding: 10px;
+            }
+            .card {
+                padding: 30px 20px;
+                border-radius: 16px;
+            }
+
+            .title {
+                font-size: 1.8rem;
+                margin-bottom: 8px;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 25px;
+                line-height: 1.4;
+            }
+
+            .form-group {
+                margin-bottom: 18px;
+            }
+
+            label {
+                font-size: 0.85rem;
+                margin-bottom: 6px;
+            }
+
+            input {
+                padding: 10px 12px;
+                font-size: 0.85rem;
+                border-radius: 10px;
+                min-height: 40px;
+            }
+
+            .btn {
+                padding: 12px;
+                font-size: 0.9rem;
+                margin-top: 10px;
+                border-radius: 10px;
+                min-height: 40px;
+            }
+
+            .result {
+                margin-top: 25px;
+                padding: 16px;
+                border-radius: 12px;
+            }
+
+            .result h3 {
+                font-size: 1rem;
+                margin-bottom: 8px;
+            }
+
+            .result p {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .container {
+                max-width: 300px;
+                padding: 8px;
+            }
+
+            .card {
+                padding: 25px 18px;
+                border-radius: 14px;
+            }
+
+            .title {
+                font-size: 1.6rem;
+            }
+
+            .subtitle {
+                font-size: 0.85rem;
+                margin-bottom: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            input {
+                padding: 9px 11px;
+                font-size: 0.8rem;
+                min-height: 38px;
+            }
+
+            .btn {
+                padding: 11px;
+                font-size: 0.85rem;
+                min-height: 38px;
+            }
+
+            .result {
+                margin-top: 20px;
+                padding: 14px;
+            }
+
+            .result p {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1 class="title">🏠 House Price Predictor</h1>
+            <p class="subtitle">Enter house details to estimate price</p>
+            <form id="predictionForm">
+                <div class="form-group">
+                    <label for="OverallQual">Overall Quality</label>
+                    <input type="number" id="OverallQual" name="OverallQual" placeholder="e.g., 7" min="1" max="10" required>
+                </div>
+                <div class="form-group">
+                    <label for="GrLivArea">Living Area (sq ft)</label>
+                    <input type="number" id="GrLivArea" name="GrLivArea" placeholder="e.g., 1500" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="GarageCars">Garage Cars</label>
+                    <input type="number" id="GarageCars" name="GarageCars" placeholder="e.g., 2" min="0" max="4" required>
+                </div>
+                <button type="submit" class="btn" id="predictBtn">
+                    Predict Price
+                </button>
+            </form>
+            <div class="result" id="result">
+                <h3>Predicted Price</h3>
+                <p id="price">$0</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictionForm');
+        const btn = document.getElementById('predictBtn');
+        const result = document.getElementById('result');
+        const price = document.getElementById('price');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Show loading state
+            btn.classList.add('loading');
+            btn.innerHTML = '<span class="spinner"></span>Predicting...';
+            result.classList.remove('show'); // Hide previous result
+
+            try {
+                // Collect form data
+                const formData = {
+                    OverallQual: parseInt(document.getElementById('OverallQual').value),
+                    GrLivArea: parseInt(document.getElementById('GrLivArea').value),
+                    GarageCars: parseInt(document.getElementById('GarageCars').value)
+                };
+
+                const response = await fetch('http://127.0.0.1:8000/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Prediction failed');
+                }
+
+                const data = await response.json();
+                price.textContent = `$${data.price.toLocaleString()}`;
+                result.classList.add('show');
+            } catch (error) {
+                console.error('Error:', error);
+                price.textContent = 'Error predicting price';
+                result.classList.add('show');
+            } finally {
+                // Reset button
+                btn.classList.remove('loading');
+                btn.innerHTML = 'Predict Price';
+            }
+        });
+    </script>
+</body>
+</html>
